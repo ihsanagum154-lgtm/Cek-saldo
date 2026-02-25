@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner L1 Pro - Multi-Chain Audit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,700;0,800;1,800&display=swap');
+        
+        :root {
+            --bg-primary: #f8fafc;
+            --text-primary: #0f172a;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --input-bg: #f1f5f9;
+        }
+
+        .dark-theme {
+            --bg-primary: #020617;
+            --text-primary: #f1f5f9;
+            --card-bg: #0f172a;
+            --border-color: #1e293b;
+            --input-bg: #1e293b;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .custom-card {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+        }
+
+        .custom-input {
+            background-color: var(--input-bg);
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .mode-pc #app-container { max-width: 1000px; }
+        .mode-mobile #app-container { max-width: 480px; }
+
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .transition-theme { transition: background-color 0.4s, color 0.4s, border-color 0.4s; }
+    </style>
+</head>
+<body class="pb-20">
+    <div id="app-container" class="mx-auto p-4 md:p-8 transition-all duration-500">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 p-2.5 rounded-2xl text-white shadow-xl rotate-3">
+                    <i class="fa-solid fa-cube text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black tracking-tighter italic uppercase leading-none">
+                        Scanner <span class="text-indigo-500">L1 Pro</span>
+                    </h1>
+                    <p class="text-[9px] font-black opacity-50 uppercase tracking-[0.3em]">Global Audit System</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleSettings()" class="p-2.5 rounded-xl custom-card shadow-sm hover:scale-105 active:scale-95 transition-theme">
+                    <i class="fa-solid fa-sliders"></i>
+                </button>
+                <button onclick="toggleTheme()" id="theme-btn" class="p-2.5 rounded-xl custom-card shadow-sm hover:scale-105 active:scale-95 transition-theme">
+                    <i class="fa-solid fa-moon text-indigo-600" id="theme-icon"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Panel Pengaturan -->
+        <div id="settings-panel" class="hidden custom-card rounded-[2rem] p-6 mb-8 shadow-2xl transition-theme">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-[10px] font-black uppercase opacity-50 mb-2 tracking-widest">Pilihan Suara Narasi</label>
+                    <select id="voice-select" class="w-full custom-input rounded-xl p-3 text-xs font-bold outline-none cursor-pointer"></select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black uppercase opacity-50 mb-2 tracking-widest">Tampilan Perangkat</label>
+                    <div class="flex p-1 bg-black/5 dark:bg-white/5 rounded-xl gap-1">
+                        <button onclick="setDevice('mobile')" id="btn-mobile" class="flex-1 py-2 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-700 shadow-sm text-indigo-600">Mobile (HP)</button>
+                        <button onclick="setDevice('pc')" id="btn-pc" class="flex-1 py-2 rounded-lg text-[10px] font-bold opacity-40">Desktop (PC)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scanner Form -->
+        <div class="custom-card rounded-[2.5rem] p-8 shadow-2xl mb-8 transition-theme">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="md:col-span-1">
+                    <label class="block text-[10px] font-black mb-2 uppercase opacity-50">Jaringan</label>
+                    <div class="relative">
+                        <select id="chain-selector" onchange="updateChainLogo()" class="w-full custom-input rounded-2xl p-4 font-bold outline-none appearance-none cursor-pointer">
+                            <option value="bitcoin">Bitcoin (BTC)</option>
+                            <option value="ethereum">Ethereum (ETH)</option>
+                            <option value="solana">Solana (SOL)</option>
+                            <option value="ripple">XRP (Ripple)</option>
+                            <option value="binancecoin">BNB (Smart Chain)</option>
+                            <option value="litecoin">Litecoin (LTC)</option>
+                            <option value="dogecoin">Dogecoin (DOGE)</option>
+                        </select>
+                        <img id="chain-logo" src="https://cryptologos.cc/logos/bitcoin-btc-logo.png" class="absolute right-10 top-4.5 w-5 h-5 rounded-full">
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-6 text-[10px] opacity-30"></i>
+                    </div>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[10px] font-black mb-2 uppercase opacity-50">Public Key (Address)</label>
+                    <div class="relative">
+                        <input type="text" id="address-input" placeholder="Masukkan alamat wallet..." class="w-full custom-input rounded-2xl p-4 pl-12 font-medium outline-none transition-theme">
+                        <i class="fa-solid fa-search absolute left-4 top-5 text-indigo-500"></i>
+                    </div>
+                </div>
+            </div>
+            <button onclick="processRealScan()" id="btn-scan" class="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-xl hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-3">
+                <i class="fa-solid fa-bolt text-xl"></i> ANALISIS SALDO REAL-TIME
+            </button>
+        </div>
+
+        <!-- Area Hasil -->
+        <div id="results-area" class="hidden space-y-6 mb-8 animate-float"></div>
+
+        <!-- Panduan & Keamanan -->
+        <div class="custom-card rounded-[2.5rem] p-8 shadow-xl mb-8 transition-theme">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-sm font-black uppercase italic tracking-tight">Panduan Alur & Keamanan</h3>
+                <div class="flex gap-2">
+                    <button onclick="playVoice('flow')" class="p-3 rounded-full bg-indigo-600 text-white hover:scale-110 transition-all shadow-md"><i class="fa-solid fa-route"></i></button>
+                    <button onclick="playVoice('security')" class="p-3 rounded-full bg-amber-500 text-white hover:scale-110 transition-all shadow-md"><i class="fa-solid fa-shield-cat"></i></button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10">
+                    <h4 class="text-[11px] font-black uppercase text-indigo-600 mb-3">Alur CEX ke DEX</h4>
+                    <ul class="text-[10px] font-bold space-y-2 opacity-70">
+                        <li>1. Salin alamat dari menu "Receive" di dompet DEX.</li>
+                        <li>2. Paste di menu "Withdraw" pada akun CEX.</li>
+                        <li>3. Pilih jaringan yang identik untuk transfer.</li>
+                    </ul>
+                </div>
+                <div class="p-6 rounded-[2rem] bg-amber-500/5 border border-amber-500/10">
+                    <h4 class="text-[11px] font-black uppercase text-amber-600 mb-3">Keamanan Seed Phrase</h4>
+                    <ul class="text-[10px] font-bold space-y-2 opacity-70">
+                        <li>• 12 kata rahasia adalah kunci akses utama anda.</li>
+                        <li>• Jangan pernah membagi kode ini kepada siapapun.</li>
+                        <li>• Simpan fisik, jangan simpan di penyimpanan HP.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-indigo-600 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden transition-theme">
+            <div class="relative z-10">
+                <h3 class="text-xl font-black italic uppercase mb-2">Audit Terpercaya</h3>
+                <p class="text-xs font-medium opacity-80 leading-relaxed italic max-w-sm">
+                    "Sistem audit otomatis tanpa memerlukan akses private key. Keamanan dana sepenuhnya milik anda."
+                </p>
+            </div>
+            <i class="fa-solid fa-lock absolute -right-6 -bottom-6 text-[150px] opacity-10"></i>
+        </div>
+    </div>
+
+    <script>
+        const chains = {
+            bitcoin: { name: 'Bitcoin', symbol: 'BTC', cgId: 'bitcoin', unit: 'Satoshi', decimals: 8, logo: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png', apiType: 'blockcypher', net: 'btc' },
+            ethereum: { name: 'Ethereum', symbol: 'ETH', cgId: 'ethereum', unit: 'Wei', decimals: 18, logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png', apiType: 'blockcypher', net: 'eth' },
+            solana: { name: 'Solana', symbol: 'SOL', cgId: 'solana', unit: 'Lamports', decimals: 9, logo: 'https://cryptologos.cc/logos/solana-sol-logo.png', apiType: 'solana' },
+            ripple: { name: 'XRP', symbol: 'XRP', cgId: 'ripple', unit: 'Drops', decimals: 6, logo: 'https://cryptologos.cc/logos/xrp-xrp-logo.png', apiType: 'ripple' },
+            binancecoin: { name: 'BNB', symbol: 'BNB', cgId: 'binancecoin', unit: 'Jules', decimals: 18, logo: 'https://cryptologos.cc/logos/bnb-bnb-logo.png', apiType: 'bsc' },
+            litecoin: { name: 'Litecoin', symbol: 'LTC', cgId: 'litecoin', unit: 'Litoshi', decimals: 8, logo: 'https://cryptologos.cc/logos/litecoin-ltc-logo.png', apiType: 'blockcypher', net: 'ltc' },
+            dogecoin: { name: 'Dogecoin', symbol: 'DOGE', cgId: 'dogecoin', unit: 'Koin Kecil', decimals: 8, logo: 'https://cryptologos.cc/logos/dogecoin-doge-logo.png', apiType: 'blockcypher', net: 'doge' }
+        };
+
+        let isDark = false;
+        let lastAnalysisText = "";
+
+        function toggleTheme() {
+            isDark = !isDark;
+            document.body.classList.toggle('dark-theme', isDark);
+            document.getElementById('theme-icon').className = isDark ? 'fa-solid fa-sun text-yellow-400' : 'fa-solid fa-moon text-indigo-600';
+        }
+
+        function toggleSettings() {
+            document.getElementById('settings-panel').classList.toggle('hidden');
+        }
+
+        function setDevice(mode) {
+            const container = document.body;
+            const btnMob = document.getElementById('btn-mobile');
+            const btnPc = document.getElementById('btn-pc');
+            if(mode === 'pc') {
+                container.classList.add('mode-pc');
+                btnPc.className = 'flex-1 py-2 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-700 shadow-sm text-indigo-600';
+                btnMob.className = 'flex-1 py-2 rounded-lg text-[10px] font-bold opacity-40';
+            } else {
+                container.classList.remove('mode-pc');
+                btnMob.className = 'flex-1 py-2 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-700 shadow-sm text-indigo-600';
+                btnPc.className = 'flex-1 py-2 rounded-lg text-[10px] font-bold opacity-40';
+            }
+        }
+
+        function updateChainLogo() {
+            const key = document.getElementById('chain-selector').value;
+            document.getElementById('chain-logo').src = chains[key].logo;
+        }
+
+        function initVoices() {
+            const select = document.getElementById('voice-select');
+            const voices = window.speechSynthesis.getVoices();
+            select.innerHTML = voices.map(v => `<option value="${v.name}">${v.name} (${v.lang})</option>`).join('');
+            const idVoice = voices.find(v => v.lang.includes('id-ID'));
+            if(idVoice) select.value = idVoice.name;
+        }
+        window.speechSynthesis.onvoiceschanged = initVoices;
+
+        function speakText(text) {
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            const voiceName = document.getElementById('voice-select').value;
+            utter.voice = window.speechSynthesis.getVoices().find(v => v.name === voiceName);
+            utter.lang = 'id-ID';
+            window.speechSynthesis.speak(utter);
+        }
+
+        function playVoice(type) {
+            let text = "";
+            if(type === 'flow') text = "Alur pindah aset sangat mudah. Pertama, salin alamat publik di dompet DEX anda. Kedua, buka bursa atau CEX, pilih menu penarikan, tempel alamat tadi, dan pastikan jaringan sama agar aset tidak hilang.";
+            else if(type === 'security') text = "Penting untuk menjaga dua belas kata rahasia anda. Siapa pun yang tahu kata ini bisa mencuri semua koin anda. Jangan pernah simpan di HP atau email, tulis di kertas dan simpan di tempat rahasia.";
+            else if(type === 'analysis') text = lastAnalysisText;
+            speakText(text);
+        }
+
+        function terbilang(n) {
+            const units = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan', 'Sepuluh', 'Sebelas'];
+            n = Math.floor(Math.abs(n));
+            if (n < 12) return " " + units[n];
+            if (n < 20) return terbilang(n - 10) + " Belas";
+            if (n < 100) return terbilang(Math.floor(n / 10)) + " Puluh" + terbilang(n % 10);
+            if (n < 200) return " Seratus" + terbilang(n - 100);
+            if (n < 1000) return terbilang(Math.floor(n / 100)) + " Ratus" + terbilang(n % 100);
+            if (n < 2000) return " Seribu" + terbilang(n - 1000);
+            if (n < 1000000) return terbilang(Math.floor(n / 1000)) + " Ribu" + terbilang(n % 1000);
+            if (n < 1000000000) return terbilang(Math.floor(n / 1000000)) + " Juta" + terbilang(n % 1000000);
+            if (n < 1000000000000) return terbilang(Math.floor(n / 1000000000)) + " Miliar" + terbilang(n % 1000000000);
+            return "Jumlah sangat besar";
+        }
+
+        function terbilangEnglish(n) {
+            const units = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+            const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+            n = Math.floor(Math.abs(n));
+            if (n < 20) return units[n];
+            if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + units[n % 10] : '');
+            if (n < 1000) return units[Math.floor(n / 100)] + ' Hundred' + (n % 100 !== 0 ? ' and ' + terbilangEnglish(n % 100) : '');
+            if (n < 1000000) return terbilangEnglish(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 !== 0 ? ' ' + terbilangEnglish(n % 1000) : '');
+            return "Large Amount";
+        }
+
+        async function processRealScan() {
+            const addr = document.getElementById('address-input').value.trim();
+            const key = document.getElementById('chain-selector').value;
+            const c = chains[key];
+            const btn = document.getElementById('btn-scan');
+            const resArea = document.getElementById('results-area');
+
+            if(!addr) return;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> AUDITING...';
+
+            try {
+                let balance = 0;
+                if (c.apiType === 'blockcypher') {
+                    const r = await fetch(`https://api.blockcypher.com/v1/${c.net}/main/addrs/${addr}/balance`);
+                    const j = await r.json(); balance = j.balance / Math.pow(10, c.decimals);
+                } else if (c.apiType === 'solana') {
+                    const r = await fetch('https://api.mainnet-beta.solana.com', {
+                        method:'POST', headers:{'Content-Type':'application/json'},
+                        body:JSON.stringify({jsonrpc:"2.0", id:1, method:"getBalance", params:[addr]})
+                    });
+                    const j = await r.json(); balance = j.result.value / 1e9;
+                } else if (c.apiType === 'ripple') {
+                    const r = await fetch(`https://api.xrpscan.com/api/v1/account/${addr}`);
+                    const j = await r.json(); balance = parseFloat(j.xrpBalance || 0);
+                } else if (c.apiType === 'bsc') {
+                    const r = await fetch(`https://api.blockcypher.com/v1/eth/main/addrs/${addr}/balance`);
+                    const j = await r.json(); balance = j.balance / 1e18;
+                }
+
+                const pr = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${c.cgId}&vs_currencies=idr,usd`);
+                const pj = await pr.json();
+                const rateIdr = pj[c.cgId].idr;
+                const rateUsd = pj[c.cgId].usd;
+                
+                const totalIdr = Math.floor(balance * rateIdr);
+                const totalUsd = balance * rateUsd;
+                const wholeUsd = Math.floor(totalUsd);
+                
+                const whole = Math.floor(balance);
+                const small = Math.round((balance % 1) * Math.pow(10, c.decimals));
+
+                lastAnalysisText = `Audit selesai. Saldo wallet anda adalah ${whole} ${c.symbol}. Total estimasi nilai aset adalah ${terbilang(totalIdr)} rupiah, atau sekitar ${terbilangEnglish(wholeUsd)} dollars.`;
+
+                resArea.innerHTML = `
+                    <div class="custom-card rounded-[2.5rem] p-8 shadow-2xl space-y-6 transition-theme relative overflow-hidden">
+                        <button onclick="playVoice('analysis')" class="absolute top-6 right-6 p-3 rounded-full bg-indigo-600 text-white shadow-lg hover:scale-110 active:scale-95 transition-all">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+
+                        <div class="flex items-center gap-4">
+                            <img src="${c.logo}" class="w-14 h-14 rounded-full shadow-lg">
+                            <div>
+                                <h4 class="text-[10px] font-black uppercase opacity-40">Harga Pasar 1 ${c.symbol}</h4>
+                                <p class="text-xl font-black text-indigo-500">Rp ${rateIdr.toLocaleString('id-ID')}</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-[10px] font-black opacity-40 uppercase mb-1">Audit Saldo Akurat</h4>
+                            <p class="text-4xl font-black italic tracking-tighter">${balance.toFixed(6)} ${c.symbol}</p>
+                        </div>
+
+                        <div class="p-6 rounded-3xl bg-black/5 dark:bg-white/5 text-[10px] font-bold">
+                            <p>${whole.toLocaleString('id-ID')} ${c.symbol} & ${small.toLocaleString('id-ID')} ${c.unit}</p>
+                            <p class="text-indigo-500 italic mt-1 capitalize">"${terbilang(whole)} ${c.symbol} dan ${terbilang(small)} ${c.unit}"</p>
+                        </div>
+
+                        <!-- Panel Rupiah -->
+                        <div class="p-8 rounded-[2rem] bg-emerald-500/10 border-2 border-emerald-500/20">
+                            <p class="text-[10px] font-black text-emerald-600 uppercase mb-1">Estimasi Nilai Rupiah (IDR)</p>
+                            <p class="text-4xl font-black text-emerald-500">Rp ${totalIdr.toLocaleString('id-ID')}</p>
+                            <p class="text-[9px] opacity-60 italic font-bold">"${terbilang(totalIdr)} Rupiah"</p>
+                        </div>
+
+                        <!-- Panel Dolar -->
+                        <div class="p-8 rounded-[2rem] bg-indigo-500/10 border-2 border-indigo-500/20">
+                            <p class="text-[10px] font-black text-indigo-600 uppercase mb-1">Estimasi Nilai Dolar (USD)</p>
+                            <p class="text-3xl font-black text-indigo-500">$ ${totalUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                            <p class="text-[9px] opacity-60 italic font-bold uppercase tracking-tight">"${terbilangEnglish(wholeUsd)} US Dollars"</p>
+                        </div>
+                    </div>
+                `;
+                resArea.classList.remove('hidden');
+                speakText(lastAnalysisText);
+
+            } catch (e) {
+                console.error(e);
+                alert("Gagal melakukan audit. Pastikan alamat benar dan koneksi internet stabil.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-bolt text-xl"></i> ANALISIS SALDO REAL-TIME';
+            }
+        }
+
+        window.onload = () => { initVoices(); setDevice('mobile'); };
+    </script>
+</body>
+</html>
+
